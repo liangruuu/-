@@ -6,6 +6,7 @@ const {
   formatMessage
 } = require('./tool')
 const template = require('./template')
+const reply = require('./reply')
 
 module.exports = () => {
   return async (req, res, next) => {
@@ -99,36 +100,11 @@ module.exports = () => {
        * 一旦遇到以下情况，微信都会在公众号会话中，向用户下发系统提示“该公众号暂时无法提供服务，请稍后再试”：
        * 1、开发者在5秒内未回复任何内容 2、开发者回复了异常数据，比如JSON数据, 字符串, xml数据中有多余空格等
        */
-
-      let options = {
-        toUserName: message.FromUserName,
-        fromUserName: message.ToUserName,
-        CreateTime: Date.now(),
-        msgType: 'text'
-      }
-
-      let content = '您在说什么，我听不懂'
-      // 判断消息类型
-      if (message.MsgType === 'text') {
-        // 判断消息内容
-        if (message.Content === '1') { // 全匹配
-          content = '大吉大利，今晚吃鸡'
-        } else if (message.Content === '2') {
-          content = '落地成盒'
-        } else if (message.Content.match('爱')) { // 半匹配
-          content = '我爱你'
-        }
-      }
-
-      options.content = content
-      console.log(options)
-
+      let options = reply(message)
       let replyMessage = template(options)
       console.log(replyMessage)
       // 返回响应给微信服务器
       res.send(replyMessage)
-
-
 
       // console.log(req.query) 
       // {
