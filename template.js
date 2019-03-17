@@ -2,16 +2,15 @@
  * 加工处理最终回复用户消息的模板
  */
 module.exports = options => {
-  let replyMessage =
-    `
+  let replyMessage =`
     <xml>
-    <ToUserName><![CDATA[${options.ToUserName}]]></ToUserName>
-    <FromUserName><![CDATA[${options.FromUserName}]]></FromUserName>
-    <CreateTime>${options.creaeTime}</CreateTime>
-    <MsgType><![CDATA[${options.MsgType}]]></MsgType>
+    <ToUserName><![CDATA[${options.toUserName}]]></ToUserName>
+    <FromUserName><![CDATA[${options.fromUserName}]]></FromUserName>
+    <CreateTime>${options.CreateTime}</CreateTime>
+    <MsgType><![CDATA[${options.msgType}]]></MsgType>
   `
-  if (options.MsgType === 'text') {
-    replyMessage += `<Content><![CDATA[${options.context}]]></Content>`
+  if (options.msgType === 'text') {
+    replyMessage += `<Content><![CDATA[${options.content}]]></Content>`
   } else if (options.MsgType === 'image') {
     replyMessage += `<Image><MediaId><![CDATA[${options.mediaId}]]></MediaId></Image>`
   } else if (options.MsgType === 'voice') {
@@ -27,7 +26,7 @@ module.exports = options => {
         <Title><![CDATA[${options.title}]]></Title>
         <Description><![CDATA[${options.description}]]></Description>
       </Video>`
-  } else if (options.MsgType === 'music') {
+  } else if (options.msgType === 'music') {
     replyMessage += `
       <Music>
         <Title><![CDATA[${options.title}]]></Title>
@@ -36,7 +35,7 @@ module.exports = options => {
         <HQMusicUrl><![CDATA[${options.hqMusicUrl}]]></HQMusicUrl>
         <ThumbMediaId><![CDATA[${options.mediaId}]]></ThumbMediaId>
       </Music>`
-  } else if (options.MsgType === 'news') {
+  } else if (options.msgType === 'news') {
     /**
      * options.content = [{...},{...},{...}]
      * 
