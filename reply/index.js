@@ -1,10 +1,13 @@
+/**
+ * 验证服务器的有效性的模块
+ */
 const sha1 = require('sha1')
-const config = require('./config')
+const config = require('../config/config')
 const {
   getUserDataAsync,
   parseXMLAsync,
   formatMessage
-} = require('./utils/tool')
+} = require('../utils/tool')
 const template = require('./template')
 const reply = require('./reply')
 

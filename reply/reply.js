@@ -20,37 +20,29 @@ module.exports = message => {
     } else if (message.Content.match('爱')) { // 半匹配
       content = '我爱你'
     }
-  } else if (message.MsgType === 'image') {
-    options.msgType = 'image'
-    options.mediaId = message.MediaId
-    console.log(message.PicUrl)
   } else if (message.MsgType === 'voice') {
     // 需再管理界面开启语音识别权限
     options.msgType = 'voice'
     options.mediaId = message.MediaId
     console.log(message.Recognition)
-  } else if (message.MsgType === 'location') {
-    // 需再管理界面开启地理位置权限
-    content = `维度：${message.Location_X} 经度：${message.Location_Y} 缩放大小：${message.Scale} 位置信息：${message.Label}`
   } else if (message.MsgType === 'event') {
     // 用户订阅事件和取关事件
     if (message.Event === 'subscribe') {
-      content = '欢迎您的关注~'
-      /**
-       * 带参数的二维码事件
-       * if(message.Eventkey == 'xxx')
-       */
-      if (message.Eventkey == 'xxx') {
-        content = '用户扫描了带参数的二维码关注事件'
-      }
+      content = '欢迎您的关注电影公众号~\n' +
+        '回复 首页 能看到电影预告片页面\n' +
+        '回复 热门 能看到最新最热的电影\n' +
+        '回复 文本 能查看指定的电影信息\n' +
+        '回复 语音 能查看指定的电影信息\n' +
+        '也可以点击下面的菜单按钮，来了解电影公众号'
     } else if (message.Event === 'unsubscribe') {
-      console.log('取关')
-    } else if (message.Event === 'SCAN') {
-      content = '用户已关注过，再扫描了带参数的二维码关注事件'
-    } else if (message.Event === 'LOCATION') {
-      content = `维度：${message.Latitude} 经度：${message.Longitude} 精度：${message.Precision}`
+      console.log('无情取关~')
     } else if (message.Event === 'CLICK') {
-      content = `您点击了按钮：${message.EventKey}`
+      content = '您可以按照以下提示来进行操作~\n' +
+        '回复 首页 能看到电影预告片页面\n' +
+        '回复 热门 能看到最新最热的电影\n' +
+        '回复 文本 能查看指定的电影信息\n' +
+        '回复 语音 能查看指定的电影信息\n' +
+        '也可以点击下面的菜单按钮，来了解电影公众号'
     }
   }
 

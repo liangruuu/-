@@ -28,14 +28,14 @@
 const {
   appID,
   appsecret
-} = require('./config')
+} = require('../config/config')
 const rp = require('request-promise-native')
 const menu = require('./menu')
-const api = require('./utils/api')
+const api = require('../utils/api')
 const {
   writeFileAsync,
   readFileAsync
-} = require('./utils/tool')
+} = require('../utils/tool')
 
 class Wechat {
   constructor() {}
@@ -357,18 +357,18 @@ class Wechat {
   }
 }
 
-// (async () => {
-//   // 模拟测试
-//   let w = new Wechat()
-//   // // 删除之前定义的菜单
-//   // let result = await w.deleteMenu()
-//   // console.log(result)
-//   // // 创建新的菜单
-//   // result = await w.createMenu(menu)
-//   // console.log(result)
+(async () => {
+  // 模拟测试
+  let w = new Wechat()
+  // // 删除之前定义的菜单
+  // let result = await w.deleteMenu()
+  // console.log(result)
+  // // 创建新的菜单
+  // result = await w.createMenu(menu)
+  // console.log(result)
 
-//   let data = await w.fetchTicket()
-//   console.log(data)
-// })()
+  let data = await w.fetchTicket()
+  // console.log(data)
+})()
 
 module.exports = Wechat
