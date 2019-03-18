@@ -56,6 +56,42 @@ module.exports = async () => {
     return result
   })
 
+  // console.log(result)
+
+  // 遍历爬取到的8条数据
+  for (let i = 0; i < result.length; i++) {
+    // 获取每个条目信息
+    let item = result[i]
+    let url = item.href
+    await page.goto(url, {
+      waitUtil: 'networkidle2'
+    })
+
+    let itemResult = await page.evaluate(() => {
+      let genre = []
+      // 类型
+      const $genre = $('[property="v:genre"]')
+      for (let j = 0; j < $genre.length; j++) {
+        genre.push($genre[j].innerText)
+      }
+      // 简介
+      const summary = $('[property="v:summary"]').html().replace(/\s+/g,'')
+
+      return {
+        genre,
+        summary
+      }
+    })
+
+    /**
+     * 在最后给当前对象添加两个属性
+     * 因为在evaluate函数中没办法读取服务器中的变量
+     */
+    item.genre = itemResult.genre
+    item.summary = itemResult.summary
+  }
+
+
   console.log(result)
 
   await browser.close();
