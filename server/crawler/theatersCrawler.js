@@ -22,12 +22,14 @@ module.exports = async () => {
   });
 
   // 开启延时器，延时2秒再开始爬取数据(网络不好的情况下使用, 等网页css，js数据加载完)
-  await timeout()
+  // await timeout()
+
   const result = await page.evaluate(() => {
     // 对加载好的页面进行dom操作
 
     // 所有爬取好的数据数据
     const result = []
+    let pattern = /(\d+)\/\?/
 
     // 获取所有热门电影的li
     let $list = $('#nowplaying>.mod-bd>.lists>.list-item')
@@ -40,6 +42,8 @@ module.exports = async () => {
       let directors = $(liDom).data('director')
       let casts = $(liDom).data('actors')
       let href = $(liDom).find('.poster>a').attr('href')
+      pattern.test(href)
+      let doubanId = RegExp.$1
       let image = $(liDom).find('.poster>a>img').attr('src')
       result.push({
         title,
@@ -48,10 +52,10 @@ module.exports = async () => {
         directors,
         casts,
         href,
-        image
+        image,
+        doubanId
       })
     }
-
     // 将爬取好的数据返回出去
     return result
   })
@@ -63,9 +67,14 @@ module.exports = async () => {
     // 获取每个条目信息
     let item = result[i]
     let url = item.href
-    await page.goto(url, {
-      waitUtil: 'networkidle2'
-    })
+    try {
+      await page.goto(url, {
+        waitUtil: 'networkidle2'
+      })
+    } catch (error) {
+      console.log(error);
+      browser.close();
+    }
 
     let itemResult = await page.evaluate(() => {
       let genre = []
@@ -75,11 +84,13 @@ module.exports = async () => {
         genre.push($genre[j].innerText)
       }
       // 简介
-      const summary = $('[property="v:summary"]').html().replace(/\s+/g,'')
+      const summary = $('[property="v:summary"]').html().replace(/\s+/g, '')
+      const releaseDate = $('[property="v:initialReleaseDate"]').html()
 
       return {
         genre,
-        summary
+        summary,
+        releaseDate
       }
     })
 
@@ -89,12 +100,13 @@ module.exports = async () => {
      */
     item.genre = itemResult.genre
     item.summary = itemResult.summary
+    item.releaseDate = itemResult.releaseDate
   }
-
-
   console.log(result)
 
   await browser.close();
+
+  return result
 }
 
 function timeout() {
