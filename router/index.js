@@ -6,6 +6,7 @@ const {
   url
 } = require('../config/config')
 const sha1 = require('sha1')
+const Theaters = require('../model/Theater')
 
 const wechatApi = new Wachat()
 const router = new Router()
@@ -39,6 +40,28 @@ app.get('/search', async (req, res) => {
     noncestr,
     timestamp
   })
+})
+
+app.get('/detail/:id', async (req, res) => {
+  const {
+    id
+  } = req.params
+  if (id) {
+    const data = await Theaters.findOne({
+      doubanId: id
+    }, {
+      _id: 0,
+      __v: 0,
+      createTime: 0,
+      doubanId: 0
+    })
+    console.log(data)
+    res.render('detail', {
+      data
+    })
+  } else {
+    res.end('error')
+  }
 })
 
 app.use(reply())

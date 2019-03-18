@@ -29,7 +29,6 @@ module.exports = () => {
      * 3. 加密完成就生成一个signature，和微信发送过来的进行对比
      */
     const sha1Str = sha1([timestamp, token, nonce].sort().join(""))
-
     if (req.method === "GET") {
       // 如果一样，说明消息来自于微信服务器，返回echostr给微信服务器
       if (sha1Str === signature) {
@@ -46,7 +45,6 @@ module.exports = () => {
       if (sha1Str !== signature) {
         res.send("error")
       }
-
       /**
        * 接收请求体中的数据，因为是流式数据，所以不能用bodyparse解析，需要定义特殊的方法拿到数据
        */
@@ -103,7 +101,12 @@ module.exports = () => {
        * 一旦遇到以下情况，微信都会在公众号会话中，向用户下发系统提示“该公众号暂时无法提供服务，请稍后再试”：
        * 1、开发者在5秒内未回复任何内容 2、开发者回复了异常数据，比如JSON数据, 字符串, xml数据中有多余空格等
        */
+      /**
+       * 将reply函数改装成了async函数，此时返回值就变成了promise对象
+       * 所以必须用await才能拿到最终的返回值
+       *  */ 
       let options = reply(message)
+      console.log(options)
       let replyMessage = template(options)
       console.log(replyMessage)
       // 返回响应给微信服务器
