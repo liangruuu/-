@@ -1,5 +1,5 @@
 const express = require('express')
-const router = new Router()
+const Router = express.Router
 const reply = require('../reply')
 const Wachat = require('../wechat/wechat')
 const {
@@ -7,8 +7,9 @@ const {
 } = require('../config/config')
 const sha1 = require('sha1')
 
-const Router = express.Router
 const wechatApi = new Wachat()
+const router = new Router()
+const app = express();
 
 app.get('/search', async (req, res) => {
   /**
