@@ -4,6 +4,13 @@
 const {
   parseString
 } = require('xml2js')
+const {
+  writeFile,
+  readFile
+} = require('fs')
+const {
+  resolve
+} = require('path')
 
 module.exports = {
   getUserDataAsync(req) {
@@ -38,17 +45,48 @@ module.exports = {
     let message = {}
     // 获取xml对象，并且判断数据是否是一个对象
     jsData = jsData.xml
-    if(typeof jsData === 'object'){
-      for(let key in jsData){
+    if (typeof jsData === 'object') {
+      for (let key in jsData) {
         // 获取属性值
         let value = jsData[key]
         // 过滤空数据
-        if(Array.isArray(value) && value.length > 0){
+        if (Array.isArray(value) && value.length > 0) {
           // 将合法的数据赋值到message对象上
           message[key] = value[0]
         }
       }
     }
     return message
+  },
+  writeFileAsync(data, fileName) {
+    data = JSON.stringify(data)
+    /**
+     * 解析绝对路径，path中的resolve方法
+     */
+    let filePath = resolve(__dirname, fileName)
+    return new Promise((resolve, reject) => {
+      writeFile(filePath, data, err => {
+        if (!err) {
+          console.log("文件保存成功！")
+          resolve()
+        } else {
+          reject('writeFileAsync方法出了问题：' + err)
+        }
+      })
+    })
+  },
+  readFileAsync(fileName) {
+    let filePath = resolve(__dirname, fileName)
+    return new Promise((resolve, reject) => {
+      readFile(filePath, (err, data) => {
+        if (!err) {
+          let jsData = JSON.parse(data)
+          console.log("文件读取成功！")
+          resolve(jsData)
+        } else {
+          reject('readFileAsync方法出了问题：' + err)
+        }
+      })
+    })
   }
 }

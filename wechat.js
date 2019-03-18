@@ -30,11 +30,12 @@ const {
   appsecret
 } = require('./config')
 const rp = require('request-promise-native')
-const {
-  writeFile,
-  readFile
-} = require('fs')
 const menu = require('./menu')
+const api = require('./utils/api')
+const {
+  writeFileAsync,
+  readFileAsync
+} = require('./utils/tool')
 
 class Wechat {
   constructor() {}
@@ -42,7 +43,7 @@ class Wechat {
    * 用来获取access_token
    */
   getAccessToken() {
-    const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${appID}&secret=${appsecret}`
+    const url = `${api.accessToken}&appid=${appID}&secret=${appsecret}`
     /**
      * 返回值是一个promise对象
      * 因为操作的是异步方法，不知道方法执行的先后顺序，所以需要用promise包装延后异步方法的执行
@@ -73,32 +74,16 @@ class Wechat {
     })
   }
 
+  /**
+   * 因为ticket和access_token都有文件读写的操作，所以把文件读写封装成方法并且调用
+   * @param accessToken 
+   */
   saveAccessToken(accessToken) {
-    let accesstoken = JSON.stringify(accessToken)
-    return new Promise((resolve, reject) => {
-      writeFile('./accessToken.txt', accesstoken, err => {
-        if (!err) {
-          console.log("文件保存成功！")
-          resolve()
-        } else {
-          reject('saveAccessToken方法除了问题：' + err)
-        }
-      })
-    })
+    return writeFileAsync(accessToken, 'access_token.txt')
   }
 
   readAccessToken() {
-    return new Promise((resolve, reject) => {
-      readFile('./accessToken.txt', (err, data) => {
-        if (!err) {
-          let jsData = JSON.parse(data)
-          console.log("文件读取成功！")
-          resolve(jsData)
-        } else {
-          reject('readAccessToken方法出了问题：' + err)
-        }
-      })
-    })
+    return readFileAsync('access_token.txt')
   }
 
   isValidAccessToken(data) {
@@ -273,15 +258,115 @@ class Wechat {
       }
     })
   }
+
+
+  /**
+   * 用来获取jsapi_ticket(使用js-sdk)
+   * 微信JS-SDK是微信公众平台 面向网页开发者提供的基于微信内的网页开发工具包。
+   * 通过使用微信JS-SDK，网页开发者可借助微信高效地使用拍照、选图、语音、位置等手机系统的能力，
+   * 同时可以直接使用微信分享、扫一扫、卡券、支付等微信特有的能力，为微信用户提供更优质的网页体验。
+   */
+  getTicket() {
+    return new Promise(async (resolve, reject) => {
+      const data = await this.fetchAccessToken()
+      const url = `${api.ticket}&access_token=${data.access_token}`
+      console.log(url)
+      rp({
+          url,
+          method: "GET",
+          json: true
+        })
+        .then(res => {
+          /**
+            {
+              "errcode": 0,
+              "errmsg": "ok",
+              "ticket": "bxLdikRXVbTPdHSM05e5u5sUoXNKd8-41ZO3MhKoyN5OfkWITDGgnr2fwJ0m9E8NYzWKVZvdVtaUgWvsdshFKA",
+              "expires_in": 7200
+            }
+           */
+          resolve({
+            ticket: res.ticket,
+            expires_in: Date.now() + (res.expires_in - 300) * 1000
+          })
+        })
+        .catch(err => {
+          reject("getTicket方法出了问题：" + err)
+        })
+    })
+  }
+
+  saveTicket(ticket) {
+    return writeFileAsync(ticket, 'ticket.txt')
+  }
+
+  readTicket() {
+    return readFileAsync('ticket.txt')
+  }
+
+  isValidTicket(data) {
+    if (!data && !data.ticket && !data.expires_in) {
+      // ticket无效
+      return false
+    }
+
+    // 判断是否过期
+    return data.expires_in > Date.now()
+  }
+
+  fetchTicket() {
+    if (this.ticket && this.ticket_expires_in && this.isValidTicket(this)) {
+      // 说明之前保存过ticket，并且它是有效的
+      return Promise.resolve({
+        ticket: this.ticket,
+        expires_in: this.expires_in
+      })
+    }
+    // 是fetchTicket函数返回的对象
+    return this.readTicket()
+      // 本地有文件
+      .then(async res => {
+        if (this.isValidTicket(res)) {
+          return Promise.resolve(res)
+        } else {
+          // 过期了
+          let res = await this.getTicket()
+          await this.saveTicket(res)
+          // 将请求回来的ticket返回出去
+          return Promise.resolve(res)
+        }
+      })
+      // 本地没有文件
+      .catch(async err => {
+        // 本地有文件
+        let res = await this.getTicket()
+        await this.saveTicket(res)
+        // 将请求回来的ticket返回出去
+        return Promise.resolve(res)
+      })
+      .then(res => {
+        // ticket
+        this.ticket = res.ticket
+        this.ticket_expires_in = res.expires_in
+        /**
+         * 返回res包装了一层promise对象(此对象为成功的状态)
+         * 是this.readTicket()最终返回的对象
+         */
+        return Promise.resolve(res)
+      })
+  }
 }
 
 (async () => {
   // 模拟测试
   let w = new Wechat()
-  // 删除之前定义的菜单
-  let result = await w.deleteMenu()
-  console.log(result)
-  // 创建新的菜单
-  result = await w.createMenu(menu)
-  console.log(result)
+  // // 删除之前定义的菜单
+  // let result = await w.deleteMenu()
+  // console.log(result)
+  // // 创建新的菜单
+  // result = await w.createMenu(menu)
+  // console.log(result)
+
+  let data = await w.fetchTicket()
+  console.log(data)
 })()

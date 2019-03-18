@@ -4,7 +4,7 @@ const {
   getUserDataAsync,
   parseXMLAsync,
   formatMessage
-} = require('./tool')
+} = require('./utils/tool')
 const template = require('./template')
 const reply = require('./reply')
 
