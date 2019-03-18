@@ -18,7 +18,7 @@ app.get('/search', async (req, res) => {
    * 2. 将其进行字典序排序，以'&'凭借在一起
    * 3. 进行sha1加密，最终生成signature
    */
-  const noncestr = Math.random().split('.')[1]
+  const noncestr = Math.random().toString().split('.')[1]
   const timestamp = Date.now()
   const {
     ticket

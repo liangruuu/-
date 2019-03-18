@@ -6,7 +6,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>search</title>
-  <script src="">
+  <script type="text/javascript" src="http://res2.wx.qq.com/open/js/jweixin-1.4.0.js"></script>
+  <script src="https://cdn.bootcss.com/zepto/1.0rc1/zepto.min.js"></script>
+</head>
+
+<body>
+  <h3 id="search">语音识别查电影</h3>
+  <script type="text/javascript">
     /**
      * 1. 绑定域名
      *  - 在接口测试号页面上填写JS安全域名
@@ -16,6 +22,7 @@
      * 4. 通过ready接口处理成功验证
      * 5. 通过error接口处理失败验证
      * */
+    console.log("<%= noncestr %>")
     wx.config({
       debug: true, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
       appId: 'wxa2c08a1fd2b19772', // 必填，公众号的唯一标识
@@ -23,11 +30,11 @@
       nonceStr: '<%= noncestr %>', // 必填，生成签名的随机串
       signature: '<%= signature %>', // 必填，签名
       jsApiList: [
-        onMenuShareQQ,
-        onMenuShareQZone,
-        startRecord,
-        stopRecord,
-        translateVoice
+        "onMenuShareQQ",
+        "onMenuShareQZone",
+        "startRecord",
+        "stopRecord",
+        "translateVoice",
       ] // 必填，需要使用的JS接口列表
     });
     wx.ready(function () {
@@ -36,7 +43,57 @@
        * 所以如果需要在页面加载时就调用相关接口，则须把相关接口放在ready函数中调用来确保正确执行。
        * 对于用户触发时才调用的接口，则可以直接调用，不需要放在ready函数中。
        * */
+
+
+
+      // // 验证接口是否有权限，平时开发中使用
+      // wx.checkJsApi({
+      //   jsApiList: [
+      //     "onMenuShareQQ",
+      //     "onMenuShareQZone",
+      //     "startRecord",
+      //     "stopRecord",
+      //     "translateVoice"
+      //   ], // 需要检测的JS接口列表，所有JS接口列表见附录2,
+      //   success: function (res) {
+      //     // 以键值对的形式返回，可用的api值true，不可用为false
+      //     // 如：{"checkResult":{"chooseImage":true},"errMsg":"checkJsApi:ok"}
+      //     console.log(res)
+      //   }
+      // });
     });
+
+    /**
+     * 语音识别的功能
+     * 设置标注位
+     * */
+    let isRecord = false
+    $("#search").tap(function () {
+      if (!isRecord) {
+        // 开始录音
+        wx.startRecord()
+        isRecord = true
+      } else {
+        // 结束录音
+        wx.stopRecord({
+          success: function (res) {
+            // 结束录音后会自动上传录音到微信服务器中，微信服务器会返回id给开发者使用
+            var localId = res.localId;
+            // 将录音转换为文字
+            wx.translateVoice({
+              localId: localId, // 需要识别的音频的本地Id，由录音相关接口获得
+              isShowProgressTips: 1, // 默认为1，显示进度提示
+              success: function (res) {
+                alert(res.translateResult); // 语音识别的结果
+              }
+            });
+            isRecord = false
+          }
+        })
+      }
+    })
+
+
     wx.error(function (res) {
       /**
        * config信息验证失败会执行error函数，如签名过期导致验证失败，
@@ -44,10 +101,6 @@
        * **/
     });
   </script>
-</head>
-
-<body>
-  <h1>这是一个搜索页面</h1>
 </body>
 
 </html>
