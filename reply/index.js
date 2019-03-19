@@ -105,7 +105,7 @@ module.exports = () => {
        * 将reply函数改装成了async函数，此时返回值就变成了promise对象
        * 所以必须用await才能拿到最终的返回值
        *  */ 
-      let options = reply(message)
+      let options = await reply(message)
       console.log(options)
       let replyMessage = template(options)
       console.log(replyMessage)

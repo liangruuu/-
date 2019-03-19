@@ -10,9 +10,8 @@ const Theaters = require('../model/Theater')
 
 const wechatApi = new Wachat()
 const router = new Router()
-const app = express();
 
-app.get('/search', async (req, res) => {
+router.get('/search', async (req, res) => {
   /**
    * 生成JS-SDK使用的签名
    * 1. 组合参与签名的四个参数：jsapi_ticket(临时票据)，noncestr(随机字符串)，timestamp(时间戳)，url(当前服务器地址)
@@ -42,7 +41,7 @@ app.get('/search', async (req, res) => {
   })
 })
 
-app.get('/detail/:id', async (req, res) => {
+router.get('/detail/:id', async (req, res) => {
   const {
     id
   } = req.params
@@ -64,6 +63,6 @@ app.get('/detail/:id', async (req, res) => {
   }
 })
 
-app.use(reply())
+router.use(reply())
 
 module.exports = router
