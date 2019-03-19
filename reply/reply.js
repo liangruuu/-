@@ -1,13 +1,14 @@
 /**
  * 处理用户发送的消息类型和内容，决定返回不同的内容给用户（一般只关注文本和语音信息）
  */
+const rp = require('request-promise-native');
 const Theaters = require('../model/Theater')
 const {
   url
 } = require('../config/config')
 
 module.exports = async message => {
-  
+
   let options = {
     toUserName: message.FromUserName,
     fromUserName: message.ToUserName,
@@ -41,16 +42,86 @@ module.exports = async message => {
           url: `${url}/detail/${item.doubanId}`
         })
       }
-    } else if (message.Content === '2') {
+    } else if (message.Content === '首页') {
       content = '落地成盒'
-    } else if (message.Content.match('爱')) { // 半匹配
-      content = '我爱你'
+    } else {
+      //搜索用户输入指定电影信息
+      //定义请求地址
+      // const url = `https://api.douban.com/v2/movie/search?q=${message.Content}&count=8`;
+      const url = 'https://api.douban.com/v2/movie/search';
+      //发送请求
+      // const {subjects} = rp({method: 'GET', url, json: true, qs: {q: message.Content, count: 8}});
+      const data = await rp({
+        method: 'GET',
+        url,
+        json: true,
+        // qs:查询字符串
+        qs: {
+          q: message.Content,
+          count: 8
+        }
+      });
+      const subjects = data.subjects;
+      console.log(data);
+      //判断subjects是否有值
+      if (subjects && subjects.length) {
+        //说明有数据,返回一个图文消息给用户
+        //将回复内容初始化为空数组
+        content = [];
+        options.msgType = 'news';
+        //通过遍历将数据添加进去
+        for (let i = 0; i < subjects.length; i++) {
+          let item = subjects[i];
+          content.push({
+            title: item.title,
+            description: `电影评分为：${item.rating.average}`,
+            picUrl: item.images.small,
+            url: item.alt
+          })
+        }
+      } else {
+        //说明没有数据
+        content = '暂时没有相关的电影信息';
+      }
     }
   } else if (message.MsgType === 'voice') {
-    // 需再管理界面开启语音识别权限
-    options.msgType = 'voice'
-    options.mediaId = message.MediaId
-    console.log(message.Recognition)
+    // console.log(message.Recognition);
+    //搜索用户输入指定电影信息
+    //定义请求地址
+    // const url = `https://api.douban.com/v2/movie/search?q=${message.Recognition}&count=8`;
+    const url = 'https://api.douban.com/v2/movie/search';
+    //发送请求
+    const {
+      subjects
+    } = await rp({
+      method: 'GET',
+      url,
+      json: true,
+      qs: {
+        q: message.Recognition,
+        count: 8
+      }
+    });
+    //判断subjects是否有值
+    if (subjects && subjects.length) {
+      //说明有数据,返回一个图文消息给用户
+      //将回复内容初始化为空数组
+      content = [];
+      options.msgType = 'news';
+      //通过遍历将数据添加进去
+      for (let i = 0; i < subjects.length; i++) {
+        let item = subjects[i];
+        content.push({
+          title: item.title,
+          description: `电影评分为：${item.rating.average}`,
+          picUrl: item.images.small,
+          url: item.alt
+        })
+      }
+    } else {
+      //说明没有数据
+      content = '暂时没有相关的电影信息';
+    }
   } else if (message.MsgType === 'event') {
     // 用户订阅事件和取关事件
     if (message.Event === 'subscribe') {
@@ -73,7 +144,7 @@ module.exports = async message => {
   }
 
   options.content = content
-  console.log(options)
+  // console.log(options)
 
   return options
 }
